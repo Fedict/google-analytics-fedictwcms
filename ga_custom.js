@@ -1,44 +1,56 @@
 jQuery(document).ready(function() {
  
     /* VAR */
-	var version = "0.7";
+	var version = "0.10";
     var debugMode = false;
 	var match_ClassDownload = "Link";
 	var match_errorPage = "waia:targetpage";
 	var download_ext = ["pdf","xls","xlsx","doc","docx","ppt","pptx","dmg","exe","msi","zip","odt","odp","ods","mdb","csv","gz","txt","rtf"];
+	var regPat = download_ext.join("|");
+	
     /* 
 	====================
 	Section:
 	Download Link 
 	====================
-	*/	
-	jQuery('a[class*="Link"]').on('click', function(event) {
-		
-		if(jQuery(this).attr("class").match('[a-zA-Z]{3,4}'+match_ClassDownload)){
-
+	*/		
+	
+	jQuery("a[class]").on('click', function(event) {
+  
+		var rx = new RegExp(regPat,"i");
+	  
+		if(rx.test(jQuery(this).attr("class"))){
+  
 			var current_class = jQuery(this).attr("class");
-			var end_ext = current_class.indexOf(match_ClassDownload);			
-			var current_ext = current_class.substring(0,end_ext);
+			var current_href = jQuery(this).attr("href");
+			var idx_point = current_href.lastIndexOf (".")+1;
+			var current_ext = current_href.substr(idx_point);	
+
+			// Double check with extension
+			if(download_ext && current_ext && jQuery.inArray(current_ext.toLowerCase(), download_ext) != -1){
 			
-			if(debugMode == false){
+				if(debugMode == false){
 		   
-				_gaq.push(['_trackEvent', 'Downloads', current_ext, jQuery(this).attr("href")]);	
+				_gaq.push(['_trackEvent', 'Downloads', current_ext.toLowerCase(), jQuery(this).attr("href")]);	
 				
-				if(jQuery(this).attr("target") != '_blank'){
+					if(jQuery(this).attr("target") != '_blank'){
 				
-					/* On this case make, a break for record before continue */   
+						// On this case make, a break for record before continue    
+						event.preventDefault();
+						setTimeout(function () {
+							document.location.href = href;
+						}, 150, href=jQuery(this).attr("href"));					
+					}						   
+				}else{    
+					// Debug mode   
 					event.preventDefault();
-					setTimeout(function () {
-						document.location.href = href;
-					}, 150, href=jQuery(this).attr("href"));					
-				}						   
-			}else{    
-				/* Debug mode */  
-				event.preventDefault();
-				console.log("_gaq.push(['_trackEvent', 'Downloads', "+current_ext+", "+jQuery(this).attr("href")+"])");
-			}
-		}
-	});    
+					console.log("_gaq.push(['_trackEvent', 'Downloads', "+current_ext.toLowerCase()+", "+jQuery(this).attr("href")+"])");
+				}
+                	
+			}					
+	    }
+	  
+	})	 
 
     /* 
 	====================
@@ -60,7 +72,7 @@ jQuery(document).ready(function() {
 			var current_ext = current_href.substr(idx_point);			
 			
 			if(download_ext && current_ext && jQuery.inArray(current_ext.toLowerCase(), download_ext) != -1){
-                _gaq.push(['_trackEvent', 'Downloads', current_ext.toUpperCase(), current_href]);	
+                _gaq.push(['_trackEvent', 'Downloads', current_ext.toLowerCase(), current_href]);	
 			}
 			
             if(jQuery(this).attr("target") != '_blank'){
